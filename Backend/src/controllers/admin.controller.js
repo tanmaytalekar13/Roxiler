@@ -47,7 +47,6 @@ export const addStore = asyncHandler(async (req, res) => {
   if (!owner) throw new AppError("Owner not found.", 404);
   if (owner.role !== "OWNER") throw new AppError("Selected user is not a Store Owner.", 400);
 
-  // Both checks in parallel — safe because they are independent reads
   const [existingStore, emailExists] = await Promise.all([
     prisma.store.findUnique({ where: { ownerId } }),
     prisma.store.findUnique({ where: { email } }),
@@ -173,7 +172,7 @@ export const getStores = asyncHandler(async (req, res) => {
       name: store.name,
       email: store.email,
       address: store.address,
-      averageRating,
+      overallRating: averageRating, // ← FIX: was "averageRating", frontend reads "overallRating"
       totalRatings,
     };
   });
@@ -229,7 +228,7 @@ export const getUserById = asyncHandler(async (req, res) => {
         name: store.name,
         email: store.email,
         address: store.address,
-        averageRating,
+        overallRating: averageRating, // ← consistent key name
         totalRatings,
       },
     },

@@ -31,7 +31,15 @@ export const getStores = asyncHandler(async (req, res) => {
   const [stores, total] = await Promise.all([
     prisma.store.findMany({
       where,
-      include: { ratings: { select: { rating: true, userId: true } } },
+      include: {
+        ratings: {
+          select: {
+            id: true,       // ← FIX: needed so frontend can call PUT /ratings/:id
+            rating: true,
+            userId: true,
+          },
+        },
+      },
       orderBy: { [sortField]: sortOrder },
       skip: (pageNumber - 1) * limitNumber,
       take: limitNumber,
@@ -49,7 +57,10 @@ export const getStores = asyncHandler(async (req, res) => {
       address: store.address,
       overallRating: averageRating,
       totalRatings,
-      userRating: userRatingEntry ? userRatingEntry.rating : null,
+      // ← FIX: return object so frontend has the id for update calls
+      userRating: userRatingEntry
+        ? { id: userRatingEntry.id, rating: userRatingEntry.rating }
+        : null,
     };
   });
 

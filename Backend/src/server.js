@@ -18,9 +18,23 @@ dotenv.config();
 
 const app = express();
 
+
 // ── Security ─────────────────────────────────────────────────────────────────
 app.use(helmet());
 app.set("trust proxy", 1);
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+    ],
+  })
+);
+
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes

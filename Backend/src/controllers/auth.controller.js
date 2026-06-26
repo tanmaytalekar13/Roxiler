@@ -62,7 +62,7 @@ export const signup = asyncHandler(async (req, res) => {
 // ── LOGIN ─────────────────────────────────────────────────────────────────────
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = loginSchema.parse(req.body);
-
+    
   const user = await prisma.user.findUnique({ where: { email } });
   const isMatch = user ? await bcrypt.compare(password, user.password) : false;
 
@@ -114,9 +114,23 @@ export const refreshToken = asyncHandler(async (req, res) => {
 
 // ── CHANGE PASSWORD ───────────────────────────────────────────────────────────
 export const changePassword = asyncHandler(async (req, res) => {
-  const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
+  const result = changePasswordSchema.safeParse(req.body);
 
-  const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+  if (!result.success) {
+    return res.status(400).json({
+      success: false,
+      message: result.error.errors[0].message,
+    });
+  }
+
+  const { currentPassword, newPassword } = result.data;
+
+  const userId = req.user.id || req.user.userId;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
   if (!user) throw new AppError("User not found.", 404);
 
   const isCorrect = await bcrypt.compare(currentPassword, user.password);
@@ -127,12 +141,12 @@ export const changePassword = asyncHandler(async (req, res) => {
   }
 
   const hashed = await bcrypt.hash(newPassword, 12);
+
   await prisma.user.update({
-    where: { id: req.user.id },
+    where: { id: userId },
     data: { password: hashed },
   });
 
-  // Rotate tokens so existing sessions are invalidated
   const newAccessToken = generateAccessToken(user);
   const newRefreshToken = generateRefreshToken(user);
   setAuthCookies(res, newAccessToken, newRefreshToken);

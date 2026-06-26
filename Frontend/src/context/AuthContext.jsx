@@ -1,90 +1,34 @@
-import { createContext, useEffect, useState } from "react";
-import * as authService from "../services/authService";
+import { createContext, useState, useEffect } from "react";
+import { refreshToken, getMe, setAccessToken } from "../services/api";
 
-export const AuthContext = createContext();
+export const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true); // true until rehydration attempt completes
 
-  // -------------------------------
-  // Restore Session
-  // -------------------------------
+  // On mount: try to get a fresh accessToken via the HttpOnly refresh cookie,
+  // then load the user profile. If either fails, user stays null (not logged in).
   useEffect(() => {
-    restoreSession();
+    (async () => {
+      try {
+        const refreshRes = await refreshToken();
+        const token = refreshRes.data.data.accessToken;
+        setAccessToken(token);
+
+        const meRes = await getMe();
+        setUser(meRes.data.data);
+      } catch (_) {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  const restoreSession = async () => {
-    try {
-      const res = await authService.getMe();
-
-      setUser(res.data);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error(error);
-
-      setUser(null);
-      setIsAuthenticated(false);
-
-      sessionStorage.removeItem("accessToken");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // -------------------------------
-  // Login
-  // -------------------------------
-  const login = async (credentials) => {
-    const res = await authService.login(credentials);
-
-    const { accessToken, user } = res.data;
-
-    sessionStorage.setItem("accessToken", accessToken);
-
-    setUser(user);
-    setIsAuthenticated(true);
-
-    return user; // ✅ Return only the user object
-  };
-
-  // -------------------------------
-  // Signup
-  // -------------------------------
-  const signup = async (data) => {
-    return await authService.signup(data);
-  };
-
-  // -------------------------------
-  // Logout
-  // -------------------------------
-  const logout = async () => {
-    try {
-      await authService.logout();
-    } finally {
-      sessionStorage.removeItem("accessToken");
-
-      setUser(null);
-      setIsAuthenticated(false);
-    }
-  };
-
-  const value = {
-    user,
-    loading,
-    isAuthenticated,
-    login,
-    signup,
-    logout,
-    restoreSession,
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, setUser, loading }}>
       {children}
     </AuthContext.Provider>
   );
-};
-
-export default AuthProvider;
+}

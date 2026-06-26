@@ -1,15 +1,16 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
-
-import useAuth from "../../hooks/useAuth";
+import { login, setAccessToken } from "../../services/api";
+import { useAuth } from "../../hooks/useAuth";
+import Alert from "../../components/Alert";
+import Button from "../../components/Button";
+import Input from "../../components/Input";
 
 export default function Login() {
   const navigate = useNavigate();
-
-  const { login } = useAuth();
-
+  const { setUser } = useAuth();
+  const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const {
@@ -18,120 +19,79 @@ export default function Login() {
     formState: { errors },
   } = useForm();
 
-const onSubmit = async (data) => {
-  try {
+  const onSubmit = async (data) => {
+    setServerError("");
     setLoading(true);
 
-    const user = await login(data);
+    try {
+      // ✅ FIXED: pass object directly
+      const res = await login(data);
 
-    toast.success("Login successful");
+      const { accessToken, user } = res.data;
 
-    switch (user.role) {
-      case "ADMIN":
-        navigate("/admin/dashboard");
-        break;
+      setAccessToken(accessToken);
+      setUser(user);
 
-      case "OWNER":
-        navigate("/owner/dashboard");
-        break;
-
-      case "USER":
-        navigate("/stores");
-        break;
-
-      default:
-        navigate("/");
+      // Redirect by role
+      if (user.role === "ADMIN") navigate("/admin");
+      else if (user.role === "OWNER") navigate("/owner");
+      else navigate("/stores");
+    } catch (e) {
+      setServerError(
+        e.response?.data?.message || "Invalid email or password."
+      );
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    toast.error(
-      error?.response?.data?.message || "Login failed."
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
-
-        <h1 className="text-3xl font-bold text-center">
-          Store Rating System
-        </h1>
-
-        <p className="text-center text-gray-500 mt-2">
-          Login to your account
-        </p>
-
-        <form
-          className="mt-8 space-y-5"
-          onSubmit={handleSubmit(onSubmit)}
-        >
-          {/* Email */}
-
-          <div>
-            <label className="block mb-2 font-medium">
-              Email
-            </label>
-
-            <input
-              type="email"
-              placeholder="Enter email"
-              className="w-full rounded-lg border p-3 outline-none focus:border-blue-500"
-              {...register("email", {
-                required: "Email is required",
-              })}
-            />
-
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
-
-          {/* Password */}
-
-          <div>
-            <label className="block mb-2 font-medium">
-              Password
-            </label>
-
-            <input
-              type="password"
-              placeholder="Enter password"
-              className="w-full rounded-lg border p-3 outline-none focus:border-blue-500"
-              {...register("password", {
-                required: "Password is required",
-              })}
-            />
-
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-
-          <button
-            disabled={loading}
-            className="w-full rounded-lg bg-blue-600 py-3 text-white font-semibold transition hover:bg-blue-700 disabled:opacity-60"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-gray-600">
-          Don't have an account?
-
-          <Link
-            to="/signup"
-            className="ml-2 text-blue-600 hover:underline"
-          >
-            Sign Up
-          </Link>
-        </p>
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-lg font-semibold text-slate-800">Sign in</h2>
+        <p className="text-sm text-slate-500 mt-0.5">Welcome back.</p>
       </div>
+
+      {serverError && <Alert type="error" message={serverError} />}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <Input
+          label="Email"
+          type="email"
+          required
+          placeholder="you@example.com"
+          error={errors.email?.message}
+          {...register("email", {
+            required: "Email is required",
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: "Enter a valid email",
+            },
+          })}
+        />
+
+        <Input
+          label="Password"
+          type="password"
+          required
+          placeholder="Your password"
+          error={errors.password?.message}
+          {...register("password", {
+            required: "Password is required",
+          })}
+        />
+
+        <Button type="submit" loading={loading} className="w-full">
+          Sign in
+        </Button>
+      </form>
+
+      <p className="text-sm text-center text-slate-500">
+        Don't have an account?{" "}
+        <Link to="/signup" className="text-indigo-600 font-medium hover:underline">
+          Sign up
+        </Link>
+      </p>
     </div>
   );
 }
