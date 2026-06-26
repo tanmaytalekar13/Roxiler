@@ -1,8 +1,8 @@
-# RateStore Backend
+# Store Rating Platform Backend
 
 ## Overview
 
-The RateStore backend is an Express API for authentication, role-based access control, store management, and store ratings. It uses Prisma Client to persist users, stores, and ratings in PostgreSQL.
+The Store Rating Platform backend is an Express API for authentication, role-based access control, store management, and store ratings. It uses Prisma Client to persist users, stores, and ratings in PostgreSQL.
 
 ## Features
 

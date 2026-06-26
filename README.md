@@ -1,6 +1,6 @@
-# RateStore
+# Store Rating Platform
 
-RateStore is a full-stack store rating platform. Users can sign up, browse registered stores, and submit or update one rating per store. Administrators manage users and stores, while store owners view rating activity for their own store.
+Store Rating Platform is a full-stack assignment project where users can sign up, browse registered stores, and submit or update one rating per store. Administrators manage users and stores, while store owners view rating activity for their own store.
 
 ## Features
 
@@ -68,7 +68,7 @@ No deployment configuration is currently included in the repository.
 
 ## Project Architecture
 
-RateStore is split into a Vite React SPA and an Express API.
+The application is split into a Vite React SPA and an Express API.
 
 The frontend renders role-specific routes with React Router. `AuthContext` attempts to refresh the session on app load, stores the current user in React state, and keeps the access token in memory through the Axios API module. The Axios client sends credentials for cookies and adds an `Authorization` header when an access token is available.
 
@@ -105,7 +105,7 @@ Login
 ## Repository Structure
 
 ```text
-Roxilient/
+store-rating-platform/
 |-- Backend/
 |   |-- prisma/
 |   |   |-- migrations/
@@ -155,7 +155,7 @@ The project does not currently specify a Node.js version in `package.json` or an
 
 ```bash
 git clone <repository-url>
-cd Roxilient
+cd <project-folder>
 ```
 
 ### Step 2 - Install Dependencies
@@ -280,16 +280,14 @@ Frontend scripts:
 - `npm run preview`: Serves the production build locally with Vite preview.
 
 ## Screenshots
-
-Screenshots are not currently included in the repository.
-
-Recommended placeholders:
+placeholders:
 
 - Login page
+![alt text](image.png)
 - Admin dashboard
-- User store browsing and rating flow
+![alt text](image-1.png)
 - Owner dashboard
-
+![alt text](image-2.png)
 ## Future Improvements
 
 - Add automated tests for backend controllers and frontend user flows.

@@ -1,8 +1,8 @@
-# RateStore Frontend
+# Store Rating Platform Frontend
 
 ## Overview
 
-The RateStore frontend is a Vite React single-page application for store ratings. It provides public authentication screens and role-specific dashboards for administrators, users, and store owners.
+The Store Rating Platform frontend is a Vite React single-page application for store ratings. It provides public authentication screens and role-specific dashboards for administrators, users, and store owners.
 
 ## Features
 
