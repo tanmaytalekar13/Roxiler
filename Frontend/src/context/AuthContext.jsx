@@ -5,10 +5,7 @@ export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // true until rehydration attempt completes
-
-  // On mount: try to get a fresh accessToken via the HttpOnly refresh cookie,
-  // then load the user profile. If either fails, user stays null (not logged in).
+  const [loading, setLoading] = useState(true); 
   useEffect(() => {
     (async () => {
       try {
